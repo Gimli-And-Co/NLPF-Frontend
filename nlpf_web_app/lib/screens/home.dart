@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'layout.dart';
-
-class ProfileScreen extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
   @override
-  _ProfileState createState() => _ProfileState();
+  _HomeState createState() => _HomeState();
 }
 
 int bottomSelectedIndex = 0;
@@ -26,23 +24,23 @@ List<BottomNavigationBarItem> buildBottomNavBarItems() {
   ];
 }
 
-class _ProfileState extends State<ProfileScreen> {
+class _HomeState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.blueAccent),
+      appBar: AppBar(backgroundColor: Colors.teal, ),
       bottomNavigationBar: BottomNavigationBar(
       currentIndex: bottomSelectedIndex,
       items: buildBottomNavBarItems(),
       ),
       body: Center(
         child: FlatButton(
-          color: Colors.blueAccent,
+          color: Colors.teal,
           textColor: Colors.white,
           onPressed: () {
-            Navigator.pushNamed((context), '/');
+            Navigator.pushNamed(context, '/profile');
           },
-          child: Text('Profile'),
+          child: Text('Home'),
         ),
       ),
     );
