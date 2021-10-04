@@ -23,7 +23,6 @@ List<BottomNavigationBarItem> buildBottomNavBarItems() {
     )
   ];
 }
-
 class _HomeState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
@@ -32,6 +31,28 @@ class _HomeState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
       currentIndex: bottomSelectedIndex,
       items: buildBottomNavBarItems(),
+      onTap: (index) {
+      switch (index) {
+        case 0:
+          setState(() {
+             Navigator.pushNamed(context, '/');
+          });
+          break;
+          case 1:
+          setState(() {
+             Navigator.pushNamed(context, '/home');
+          });
+          break;
+          case 2:
+          setState(() {
+             Navigator.pushNamed(context, '/profile');
+          });
+          break;
+        default:
+        { print("Invalid choice"); } 
+        break; 
+      };
+      },
       ),
       body: Center(
         child: FlatButton(

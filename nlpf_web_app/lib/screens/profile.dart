@@ -32,8 +32,30 @@ class _ProfileState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(backgroundColor: Colors.blueAccent),
       bottomNavigationBar: BottomNavigationBar(
-      currentIndex: bottomSelectedIndex,
+      currentIndex: 2,
       items: buildBottomNavBarItems(),
+      onTap: (index) {
+      switch (index) {
+        case 0:
+          setState(() {
+             Navigator.pushNamed(context, '/');
+          });
+          break;
+          case 1:
+          setState(() {
+             Navigator.pushNamed(context, '/home');
+          });
+          break;
+          case 2:
+          setState(() {
+             Navigator.pushNamed(context, '/profile');
+          });
+          break;
+        default:
+        { print("Invalid choice"); } 
+        break; 
+      };
+      },
       ),
       body: Center(
         child: FlatButton(
