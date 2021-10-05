@@ -20,6 +20,7 @@ import '../../blocs/geocoding.event.dart';
 import '../../blocs/geocoding.state.dart';
 
 import 'Constants.dart';
+import 'profile.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -226,7 +227,7 @@ class MapState extends State<MapScreen> {
 
   void choiceAction(String choice){
     if(choice == Constants.Profil){
-      print('Redirection vers profile');
+      Navigator.pushNamed(context, '/profile');
     }else if(choice == Constants.Favorite){
       print('Redirection vers favoris');
     }else if(choice == Constants.SignOut){
