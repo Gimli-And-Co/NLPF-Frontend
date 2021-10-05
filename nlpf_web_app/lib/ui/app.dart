@@ -6,8 +6,8 @@ import 'package:nlpf_web_app/ui/screens/profile.dart';
 import 'package:nlpf_web_app/utils/constants/color.consts.dart';
 
 class App extends StatelessWidget {
-  static const String ACCESS_TOKEN = "pk.eyJ1IjoicHlyZCIsImEiOiJja3RteDh1aXMyOXdoMnBxbmFqMXFldXo0In0.liLIyYljrZI7V1Nw86cYXw";
-
+  static const String ACCESS_TOKEN =
+      "pk.eyJ1IjoicHlyZCIsImEiOiJja3RteDh1aXMyOXdoMnBxbmFqMXFldXo0In0.liLIyYljrZI7V1Nw86cYXw";
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +20,11 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: COLOR_PRIMARY,
-        accentColor: COLOR_ACCENT,
-        scaffoldBackgroundColor: COLOR_SECONDARY,
+        accentColor: COLOR_SECONDARY,
+        scaffoldBackgroundColor: COLOR_WHITE,
         appBarTheme: AppBarTheme(
           elevation: 0.0,
-          color: COLOR_SECONDARY,
+          backgroundColor: COLOR_PRIMARY,
         ),
       ),
       initialRoute: '/',
