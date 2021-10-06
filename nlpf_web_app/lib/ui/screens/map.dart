@@ -1,19 +1,18 @@
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:nlpf_web_app/api/models/geo_regions.model.dart';
-import 'package:nlpf_web_app/api/repositories/regions.repository.dart';
 import 'package:nlpf_web_app/ui/components/button.dart';
 import 'package:nlpf_web_app/ui/components/textfield.dart';
 import 'package:nlpf_web_app/utils/constants/color.consts.dart';
 import 'package:nlpf_web_app/utils/helpers/config.helper.dart';
 import 'package:nlpf_web_app/utils/helpers/location.helper.dart';
+import 'package:nlpf_web_app/utils/helpers/regions.helper.dart';
 import 'package:nlpf_web_app/utils/helpers/toast.helper.dart';
-
-import 'dart:math';
-import 'dart:typed_data';
-
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/geocoding.bloc.dart';
 import '../../blocs/geocoding.event.dart';
@@ -40,6 +39,8 @@ class MapState extends State<MapScreen> {
   final _results = [];
   final symbols = [];
 
+  Map<String, dynamic> regions = Map();
+
   // @override
   // void initState() async {
   //   super.initState();
@@ -47,7 +48,7 @@ class MapState extends State<MapScreen> {
   // }
 
   void _onMapCreated(MapboxMapController controller) {
-    mapController = controller;
+    this.mapController = controller;
   }
 
   @override
@@ -92,49 +93,38 @@ class MapState extends State<MapScreen> {
                 flex: 4,
                 child: Scaffold(
                   body: FutureBuilder(
-                    future: loadConfigFile(),
+                    future: Future.wait([loadConfigFile(), loadRegionsFile()]),
                     builder: (
                       BuildContext cntx,
-                      AsyncSnapshot<Map<String, dynamic>> snapshot,
+                      AsyncSnapshot<List<Map<String, dynamic>>> snapshot,
                     ) {
                       if (snapshot.hasData) {
                         final String token =
-                            snapshot.data['mapbox_api_token'] as String;
+                            snapshot.data[0]['mapbox_api_token'] as String;
                         final String style =
-                            snapshot.data['mapbox_style_url'] as String;
+                            snapshot.data[0]['mapbox_style_url'] as String;
+                        final Map<String, dynamic> regions = snapshot.data[1];
+                        this.regions = regions;
                         return MapboxMap(
                           accessToken: token,
                           styleString: style,
                           minMaxZoomPreference:
-                              const MinMaxZoomPreference(6.0, null),
+                              const MinMaxZoomPreference(null, null),
                           initialCameraPosition: CameraPosition(
                               target: LatLng(46.0, 2.0), zoom: 5),
+                          onStyleLoadedCallback: () =>
+                              _onStyleLoaded(this.mapController, regions),
                           onMapCreated: (MapboxMapController controller) async {
                             mapController = controller;
-                            // final result = await acquireCurrentLocation();
-                            // await controller.animateCamera(
-                            //   CameraUpdate.newLatLng(result),
-                            // );
-
-                            // await controller.addCircle(
-                            //   CircleOptions(
-                            //     circleRadius: 8.0,
-                            //     circleColor: '#006992',
-                            //     circleOpacity: 0.8,
-                            //     geometry: result,
-                            //     draggable: false,
-                            //   ),
-                            // );
                           },
                           onMapClick:
                               (Point<double> point, LatLng coordinates) {
-                            BlocProvider.of<GeocodingBloc>(context)
-                              ..add(
-                                RequestGeocodingEvent(
-                                  latitude: coordinates.latitude,
-                                  longitude: coordinates.longitude,
-                                ),
-                              );
+                            BlocProvider.of<GeocodingBloc>(context).add(
+                              RequestGeocodingEvent(
+                                latitude: coordinates.latitude,
+                                longitude: coordinates.longitude,
+                              ),
+                            );
                             _setupBottomModalSheet(cntx);
                           },
                           onMapLongClick:
@@ -385,4 +375,112 @@ class MapState extends State<MapScreen> {
       },
     );
   }
+}
+
+void _onStyleLoaded(MapboxMapController controller, regions) {
+  print("Style starting");
+  // controller.addLine(
+  //   LineOptions(
+  //     draggable: false,
+  //     lineColor: "#ff0000",
+  //     lineWidth: 7.0,
+  //     lineOpacity: 1,
+  //     geometry: [
+  //       LatLng(35.3649902, 32.0593003),
+  //       LatLng(34.9475098, 31.1187944),
+  //       LatLng(36.7108154, 30.7040582),
+  //       LatLng(37.6995850, 33.6512083),
+  //       LatLng(35.8648682, 33.6969227),
+  //       LatLng(35.3814697, 32.0546447),
+  //     ],
+  //   ),
+  // );
+  // controller.addFill(
+  //   FillOptions(
+  //     draggable: false,
+  //     fillColor: "#FF00FF",
+  //     fillOpacity: 1,
+  //     geometry: [
+  //       [
+  //         LatLng(35.3649902, 32.0593003),
+  //         LatLng(34.9475098, 31.1187944),
+  //         LatLng(36.7108154, 30.7040582),
+  //         LatLng(37.6995850, 33.6512083),
+  //         LatLng(35.8648682, 33.6969227),
+  //         LatLng(35.3814697, 32.0546447),
+  //       ]
+  //     ],
+  //   ),
+  // );
+
+  final List<FillOptions> fillRegions = [];
+  final List<dynamic> features = regions['features'];
+  final List<List<LatLng>> coordinates = [];
+
+  // Loop over each regions
+  for (var i = 0; i < features.length; i++) {
+    // Check that regions is of type polygon
+    // Mapping each coordinated to LatLng object
+    final geometry = features[i]['geometry']['coordinates'];
+    for (var k = 0; k < geometry.length; k++) {
+      if (features[i]['geometry']['type'] == 'Polygon') {
+        final rawCoor = geometry[k];
+
+        final List<LatLng> localCoordinates = [];
+        for (var j = 0; j < rawCoor.length; j++) {
+          localCoordinates.add(LatLng(rawCoor[j][1], rawCoor[j][0]));
+        }
+        controller.addLine(
+          LineOptions(
+              draggable: false,
+              lineColor: "#0000ff",
+              lineWidth: 1.0,
+              lineOpacity: 0.8,
+              geometry: localCoordinates),
+        );
+        controller.addFill(FillOptions(
+            geometry: [localCoordinates],
+            draggable: false,
+            fillOpacity: 0.3,
+            fillColor: "#222222",
+            fillOutlineColor: "#222222"));
+
+        // Push into array of fills
+        // coordinates.add(localCoordinates);
+      } else {
+        final rawCoor = geometry[k];
+
+        for (var j = 0; j < rawCoor.length; j++) {
+          final List<LatLng> localCoordinates = [];
+          for (var n = 0; n < rawCoor[j].length; n++) {
+            localCoordinates.add(LatLng(rawCoor[j][n][1], rawCoor[j][n][0]));
+          }
+
+          controller.addLine(
+            LineOptions(
+                draggable: false,
+                lineColor: "#ff00ff",
+                lineWidth: 1.0,
+                lineOpacity: 0.8,
+                geometry: localCoordinates),
+          );
+          controller.addFill(FillOptions(
+              geometry: [localCoordinates],
+              draggable: false,
+              fillOpacity: 0.3,
+              fillColor: "#222222",
+              fillOutlineColor: "#222222"));
+        }
+      }
+    }
+  }
+  // Apply fills on map
+
+  // controller.addFill(FillOptions(
+  //     geometry: coordinates,
+  //     draggable: false,
+  //     fillColor: "#FF0000",
+  //     fillOutlineColor: "#FFF00F"));
+
+  print("Style loaded");
 }
