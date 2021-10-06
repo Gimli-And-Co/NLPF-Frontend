@@ -420,31 +420,58 @@ void _onStyleLoaded(MapboxMapController controller, regions) {
   // Loop over each regions
   for (var i = 0; i < features.length; i++) {
     // Check that regions is of type polygon
-    if (features[i]['geometry']['type'] == 'Polygon') {
-      // Mapping each coordinated to LatLng object
-      final rawCoor = features[i]['geometry']['coordinates'][0];
+    // Mapping each coordinated to LatLng object
+    final geometry = features[i]['geometry']['coordinates'];
+    for (var k = 0; k < geometry.length; k++) {
+      if (features[i]['geometry']['type'] == 'Polygon') {
+        final rawCoor = geometry[k];
 
-      final List<LatLng> localCoordinates = [];
-      for (var j = 0; j < rawCoor.length; j++) {
-        localCoordinates.add(LatLng(rawCoor[j][1], rawCoor[j][0]));
-      }
-      controller.addLine(
-        LineOptions(
+        final List<LatLng> localCoordinates = [];
+        for (var j = 0; j < rawCoor.length; j++) {
+          localCoordinates.add(LatLng(rawCoor[j][1], rawCoor[j][0]));
+        }
+        controller.addLine(
+          LineOptions(
+              draggable: false,
+              lineColor: "#0000ff",
+              lineWidth: 1.0,
+              lineOpacity: 0.8,
+              geometry: localCoordinates),
+        );
+        controller.addFill(FillOptions(
+            geometry: [localCoordinates],
             draggable: false,
-            lineColor: "#0000ff",
-            lineWidth: 1.0,
-            lineOpacity: 0.8,
-            geometry: localCoordinates),
-      );
-      controller.addFill(FillOptions(
-          geometry: [localCoordinates],
-          draggable: false,
-          fillOpacity: 0.3,
-          fillColor: "#222222",
-          fillOutlineColor: "#222222"));
+            fillOpacity: 0.3,
+            fillColor: "#222222",
+            fillOutlineColor: "#222222"));
 
-      // Push into array of fills
-      coordinates.add(localCoordinates);
+        // Push into array of fills
+        // coordinates.add(localCoordinates);
+      } else {
+        final rawCoor = geometry[k];
+
+        for (var j = 0; j < rawCoor.length; j++) {
+          final List<LatLng> localCoordinates = [];
+          for (var n = 0; n < rawCoor[j].length; n++) {
+            localCoordinates.add(LatLng(rawCoor[j][n][1], rawCoor[j][n][0]));
+          }
+
+          controller.addLine(
+            LineOptions(
+                draggable: false,
+                lineColor: "#ff00ff",
+                lineWidth: 1.0,
+                lineOpacity: 0.8,
+                geometry: localCoordinates),
+          );
+          controller.addFill(FillOptions(
+              geometry: [localCoordinates],
+              draggable: false,
+              fillOpacity: 0.3,
+              fillColor: "#222222",
+              fillOutlineColor: "#222222"));
+        }
+      }
     }
   }
   // Apply fills on map
