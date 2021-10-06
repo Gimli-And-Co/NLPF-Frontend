@@ -18,6 +18,9 @@ import '../../blocs/geocoding.bloc.dart';
 import '../../blocs/geocoding.event.dart';
 import '../../blocs/geocoding.state.dart';
 
+import 'Constants.dart';
+import 'profile.dart';
+
 class MapScreen extends StatefulWidget {
   @override
   State createState() => MapState();
@@ -56,7 +59,19 @@ class MapState extends State<MapScreen> {
     return Scaffold(
         appBar: AppBar(
           title: Text("DVF App"),
-          actions: [],
+        actions: <Widget>[
+          PopupMenuButton<String>(
+            onSelected: choiceAction,
+            itemBuilder: (BuildContext context){
+              return Constants.choices.map((String choice){
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          )
+        ],
         ),
         body: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -200,6 +215,15 @@ class MapState extends State<MapScreen> {
         ));
   }
 
+  void choiceAction(String choice){
+    if(choice == Constants.Profil){
+      Navigator.pushNamed(context, '/profile');
+    }else if(choice == Constants.Favorite){
+      print('Redirection vers favoris');
+    }else if(choice == Constants.SignOut){
+      print('Redirection vers se déconnecter');
+    }
+  }
   Widget _buildRegionsDropDown() {
     return TextFormFieldWidget(
       hintText: "Username",
